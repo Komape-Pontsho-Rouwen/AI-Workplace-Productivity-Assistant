@@ -14,7 +14,66 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      history: {
+        Row: {
+          created_at: string
+          id: string
+          input: Json
+          output: Json
+          title: string
+          tool: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          input?: Json
+          output?: Json
+          title?: string
+          tool: string
+          user_id?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          input?: Json
+          output?: Json
+          title?: string
+          tool?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      tasks: {
+        Row: {
+          created_at: string
+          done: boolean
+          due_date: string | null
+          id: string
+          priority: string
+          title: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          done?: boolean
+          due_date?: string | null
+          id?: string
+          priority?: string
+          title: string
+          user_id?: string
+        }
+        Update: {
+          created_at?: string
+          done?: boolean
+          due_date?: string | null
+          id?: string
+          priority?: string
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
