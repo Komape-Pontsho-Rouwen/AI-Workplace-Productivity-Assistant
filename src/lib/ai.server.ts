@@ -15,7 +15,7 @@ function runIdFetch() {
 }
 
 /** Runs one streamed Responses call and returns the final text. */
-export async function generate(instructions: string, prompt: string, signal?: AbortSignal) {
+export async function generate(instructions: string, prompt: string, signal: AbortSignal) {
   const apiKey = process.env["LOVABLE_API_KEY"];
   if (!apiKey) throw new Error("AI is not configured.");
   const provider = createOpenAI({

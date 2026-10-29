@@ -10,7 +10,7 @@ export function HistoryPanel({
   onSelect,
 }: {
   tool: Tool;
-  activeId?: string;
+  activeId?: string | undefined;
   onSelect: (row: HistoryRow) => void;
 }) {
   const { data, isLoading } = useHistory(tool);
