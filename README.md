@@ -7,19 +7,19 @@ This project was completed for the CAPACITI AI Skills Acceleration Programme, bu
 
 The Problem
 
-Knowledge workers lose hours each week to repetitive tasks: turning meeting notes into action items, planning their day, writing follow-up emails, and researching topics. This app uses AI with structured prompts to handle those tasks quickly, while keeping the user in control by letting them review and edit every output.
+Workers lose hours each week to repetitive tasks: turning meeting notes into action items, planning their day, writing follow up emails, and researching topics. This app uses AI with structured prompts to handle those tasks quickly, while keeping the user in control by letting them review and edit every output.
 
 Features
 
 Dashboard
 Left sidebar navigation and a dashboard homepage
-In-app reminders for tasks that are due soon
+In app reminders for tasks that are due soon
 Responsive design for desktop and mobile
 
 Authentication and Data
 Sign up and log in
 Each user sees only their own saved data
-History syncs across devices
+History syncs across devices (demo account provided since the email activation feature requires payment)
 
 AI Tools
 
@@ -28,7 +28,7 @@ Each tool has its own page, a loading state, a copy button, editable AI output, 
 1.Meeting Notes Summarizer
 Paste meeting notes and get separate sections: Summary, Action Items, Decisions, and Deadlines. Each action item has a Send to Planner button.
 2.Task Planner	
-Add tasks with a due date, due time, and priority (High, Medium, Low). The AI generates a prioritized daily or weekly schedule that finishes before each deadline. Each task has a Draft Follow-up Email button.
+Add tasks with a due date, due time, and priority (High, Medium, Low). The AI generates a prioritized daily or weekly schedule that finishes before each deadline. Each task has a Draft Follow up Email button.
 3.Email Generator	
 4.Generate emails in a Formal, Friendly, or Persuasive tone.
 Research Assistant	Summarizes a topic or article and provides insights and recommendations.
