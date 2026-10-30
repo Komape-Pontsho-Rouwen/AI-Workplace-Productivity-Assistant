@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { Sparkles } from "lucide-react";
+import { Search } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -54,7 +54,7 @@ function Research() {
           <Card className="space-y-3 p-5">
             <Textarea value={input} onChange={(e) => setInput(e.target.value)} className="min-h-[180px]" placeholder="e.g. Benefits of a 4-day work week — or paste an article…" />
             <Button onClick={go} disabled={loading || !input.trim()}>
-              <Sparkles className="h-4 w-4" /> {loading ? "Researching…" : "Analyze"}
+              <Search className="h-4 w-4" /> {loading ? "Researching…" : "Analyze"}
             </Button>
           </Card>
           {loading ? (

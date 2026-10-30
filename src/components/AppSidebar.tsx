@@ -1,6 +1,6 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
-import { CalendarCheck, FileText, LayoutDashboard, LogOut, Mail, Search, Sparkles } from "lucide-react";
+import { CalendarCheck, FileText, LayoutDashboard, LogOut, Mail, Search, Briefcase } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -43,7 +43,7 @@ export function AppSidebar() {
       <SidebarHeader>
         <div className="flex items-center gap-2 px-1 py-2">
           <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-            <Sparkles className="h-4 w-4" />
+            <Briefcase className="h-4 w-4" />
           </div>
           {!collapsed && (
             <div className="leading-tight">

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQueryClient } from "@tanstack/react-query";
-import { ListPlus, Plus, Save, Sparkles, Trash2 } from "lucide-react";
+import { ListPlus, Plus, Save, FileText, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -125,7 +125,7 @@ function Meetings() {
               className="min-h-[180px]"
             />
             <Button onClick={go} disabled={loading || !notes.trim()}>
-              <Sparkles className="h-4 w-4" /> {loading ? "Summarizing…" : "Summarize"}
+              <FileText className="h-4 w-4" /> {loading ? "Summarizing…" : "Summarize"}
             </Button>
           </Card>
           {loading ? (

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Save, Sparkles } from "lucide-react";
+import { Loader2, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
@@ -11,7 +11,7 @@ export function AiLoading({ label = "Generating…" }: { label?: string }) {
   return (
     <Card className="space-y-3 p-5">
       <div className="flex items-center gap-2 text-sm font-medium text-primary">
-        <Sparkles className="h-4 w-4 animate-pulse" /> {label}
+        <Loader2 className="h-4 w-4 animate-spin" /> {label}
       </div>
       <Skeleton className="h-4 w-3/4" />
       <Skeleton className="h-4 w-full" />
