@@ -1,40 +1,47 @@
-# Ai workplace productivity assistant
 
-Build a responsive SaaS-style web app called "AI Workplace Productivity Assistant". Use a left sidebar, a dashboard home page, a clean professional design that works on desktop and mobile.
+AI Workplace Productivity Assistant
 
-Include email sign-up and login. Each user sees only their own saved data, so it syncs across devices.
+A responsive, SaaS-style web app that helps professionals save time on everyday work. It combines four AI-powered tools in one clean dashboard: a meeting notes summarizer, a task planner, an email generator, and a research assistant.
 
-Build these 4 tools, each on its own page, each saving its history per user, each with a loading state, a copy button and editable AI output:
+This project was completed for the CAPACITI AI Skills Acceleration Programme, built using Lovable.
 
-1. Meeting Notes Summarizer: user pastes notes. AI returns separate sections: Summary, Action Items, Decisions, Deadlines. Each action item has a "Send to Planner" button.
+The Problem
 
-2. Task Planner: user adds tasks with due date and priority. AI generates a prioritized daily or weekly schedule. Tasks due soon show as in-app reminders on the dashboard. Each task has a "Draft follow-up email" button.
+Knowledge workers lose hours each week to repetitive tasks: turning meeting notes into action items, planning their day, writing follow-up emails, and researching topics. This app uses AI with structured prompts to handle those tasks quickly, while keeping the user in control by letting them review and edit every output.
 
-3. Email Generator: tones Formal, Friendly, Persuasive.
+Features
 
-4. Research Assistant: summarizes a topic or article and gives insights and recommendations.
+Dashboard
+Left sidebar navigation and a dashboard homepage
+In-app reminders for tasks that are due soon
+Responsive design for desktop and mobile
 
-Show this disclaimer in the footer and near each AI output: "AI-generated content may contain errors. Review before using. Do not enter confidential information."
+Authentication and Data
+Sign up and log in
+Each user sees only their own saved data
+History syncs across devices
 
-Do not add any other features.
+AI Tools
 
-This project was built with [Lovable](https://lovable.dev).
+Each tool has its own page, a loading state, a copy button, editable AI output, and saved history per user.
 
-## Build with Lovable
+1.Meeting Notes Summarizer
+Paste meeting notes and get separate sections: Summary, Action Items, Decisions, and Deadlines. Each action item has a Send to Planner button.
+2.Task Planner	
+Add tasks with a due date, due time, and priority (High, Medium, Low). The AI generates a prioritized daily or weekly schedule that finishes before each deadline. Each task has a Draft Follow-up Email button.
+3.Email Generator	
+4.Generate emails in a Formal, Friendly, or Persuasive tone.
+Research Assistant	Summarizes a topic or article and provides insights and recommendations.
+Responsible AI
 
-Continue developing this project in the [Lovable editor](https://lovable.dev/projects/f3578b4d-104c-4506-b71a-4898d47930e3).
+The following disclaimer is shown in the footer and next to every AI output:
 
-- **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: every change made in Lovable is committed straight to this repository.
-- **Full ownership**: this code is yours. Push to `main` on GitHub and your changes sync back into Lovable, ready for your next prompt.
+AI-generated content may contain errors. Review before using. Do not enter confidential information.
 
-## Development
+Other responsible AI practices in this app:
 
-Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
+Users can edit all AI output before using it.
+Data is private to each user account.
+Users are warned not to enter confidential information.
 
-```sh
-git clone <this-repository-url>
-cd <repository-name>
-npm i
-npm run dev
-```
+Live Demo : https://aiproductivityassistantbypontsho.lovable.app
