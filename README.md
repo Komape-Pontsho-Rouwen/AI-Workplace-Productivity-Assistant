@@ -45,3 +45,8 @@ Data is private to each user account.
 Users are warned not to enter confidential information.
 
 Live Demo : https://aiproductivityassistantbypontsho.lovable.app
+
+Use the following details credentials to test the system.
+
+Email: user@demo.co.za
+Password : capaciti2026*
