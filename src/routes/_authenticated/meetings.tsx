@@ -102,7 +102,7 @@ function Meetings() {
 
   async function send(item: string) {
     try {
-      await addTask(item, null, "medium");
+      await addTask({ title: item, due_date: null, due_time: null, priority: "medium" });
       qc.invalidateQueries({ queryKey: ["tasks"] });
       toast.success("Added to Task Planner");
     } catch (e) {

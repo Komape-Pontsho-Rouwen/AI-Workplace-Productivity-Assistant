@@ -37,7 +37,7 @@ export function dueSoon(tasks: Task[], today: string, days = 2) {
   return tasks.filter((t) => !t.done && t.due_date && t.due_date <= limitISO);
 }
 
-export type TaskFields = { title: string; due_date: string; due_time: string; priority: string };
+export type TaskFields = { title: string; due_date: string | null; due_time: string | null; priority: string };
 
 export async function addTask(f: TaskFields) {
   const { error } = await supabase.from("tasks").insert(f);
