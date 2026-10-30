@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { Sparkles } from "lucide-react";
+import { Send } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
@@ -84,7 +84,7 @@ function EmailPage() {
               <Textarea id="pur" value={purpose} onChange={(e) => setPurpose(e.target.value)} className="min-h-[140px]" placeholder="What should the email say?" />
             </div>
             <Button onClick={go} disabled={loading || !purpose.trim()}>
-              <Sparkles className="h-4 w-4" /> {loading ? "Writing…" : "Generate email"}
+              <Send className="h-4 w-4" /> {loading ? "Writing…" : "Generate email"}
             </Button>
           </Card>
           {loading ? (

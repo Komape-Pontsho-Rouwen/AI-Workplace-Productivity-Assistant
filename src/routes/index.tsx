@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { CalendarCheck, FileText, Mail, Search, Sparkles } from "lucide-react";
+import { CalendarCheck, FileText, Mail, Search, Briefcase } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Disclaimer } from "@/components/Disclaimer";
 import { supabase } from "@/integrations/supabase/client";
@@ -40,7 +40,7 @@ function Index() {
     <div className="flex min-h-screen flex-col bg-sidebar text-sidebar-foreground">
       <header className="mx-auto flex w-full max-w-6xl items-center gap-2 px-6 py-5">
         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-          <Sparkles className="h-4 w-4" />
+          <Briefcase className="h-4 w-4" />
         </div>
         <span className="font-semibold text-sidebar-accent-foreground">AI Workplace</span>
         <Button asChild variant="secondary" size="sm" className="ml-auto">
