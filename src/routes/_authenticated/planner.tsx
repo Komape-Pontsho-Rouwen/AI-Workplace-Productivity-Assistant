@@ -1,37 +1,46 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQueryClient } from "@tanstack/react-query";
-import { Mail, Plus, Sparkles, Trash2 } from "lucide-react";
+import { CalendarClock, Mail, Pencil, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { PageHeader } from "@/components/PageHeader";
 import { HistoryPanel } from "@/components/HistoryPanel";
 import { AiLoading, AiTextOutput } from "@/components/AiTextOutput";
+import { DueFields, PrioritySelect, priorityClass, type Draft } from "@/components/TaskFields";
 import { planSchedule } from "@/lib/ai.functions";
 import { errMsg, useHistoryMutations } from "@/lib/history";
-import { addTask, PRIORITY_ORDER, todayISO, useTasks, type Task } from "@/lib/tasks";
-import { supabase } from "@/integrations/supabase/client";
+import { addTask, deleteTask, PRIORITY_ORDER, todayISO, updateTask, useTasks, type Task } from "@/lib/tasks";
+import { buildBlocks, formatSchedule } from "@/lib/schedule";
 
 export const Route = createFileRoute("/_authenticated/planner")({
   head: () => ({
     meta: [
       { title: "Task Planner — AI Workplace" },
-      { name: "description", content: "Add tasks and get an AI-prioritized daily or weekly schedule." },
+      { name: "description", content: "Add tasks with deadlines and get a deadline-safe daily or weekly schedule." },
       { property: "og:title", content: "Task Planner — AI Workplace" },
-      { property: "og:description", content: "Add tasks and get an AI-prioritized daily or weekly schedule." },
+      { property: "og:description", content: "Add tasks with deadlines and get a deadline-safe daily or weekly schedule." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: Planner,
 });
 
-const prioVariant = (p: string) => (p === "high" ? "destructive" : p === "medium" ? "default" : "secondary");
+const EMPTY: Draft = { title: "", date: "", time: "", priority: "medium" };
+const dueLabel = (t: Task) =>
+  t.due_date
+    ? `Due ${new Date(t.due_date + "T00:00:00").toLocaleDateString([], { day: "numeric", month: "short" })}${t.due_time ? ` · ${t.due_time.slice(0, 5)}` : ""}`
+    : "";
+const valid = (d: Draft) => d.title.trim() && d.date && d.time;
 
 function Planner() {
   const qc = useQueryClient();
@@ -39,9 +48,10 @@ function Planner() {
   const { data: tasks = [] } = useTasks();
   const run = useServerFn(planSchedule);
   const { create, update } = useHistoryMutations("planner");
-  const [title, setTitle] = useState("");
-  const [due, setDue] = useState("");
-  const [priority, setPriority] = useState("medium");
+  const [draft, setDraft] = useState<Draft>(EMPTY);
+  const [saving, setSaving] = useState(false);
+  const savingRef = useRef(false);
+  const [editing, setEditing] = useState<{ id: string; draft: Draft } | null>(null);
   const [mode, setMode] = useState<"daily" | "weekly">("daily");
   const [loading, setLoading] = useState(false);
   const [activeId, setActiveId] = useState<string>();
@@ -55,84 +65,133 @@ function Planner() {
 
   async function add(e: React.FormEvent) {
     e.preventDefault();
+    if (savingRef.current || !valid(draft)) return;
+    savingRef.current = true;
+    setSaving(true);
     try {
-      await addTask(title.trim(), due || null, priority);
-      setTitle("");
-      setDue("");
+      await addTask({ title: draft.title.trim(), due_date: draft.date, due_time: draft.time, priority: draft.priority });
+      setDraft(EMPTY);
+      await refresh();
+    } catch (err) {
+      toast.error(errMsg(err));
+    } finally {
+      savingRef.current = false;
+      setSaving(false);
+    }
+  }
+
+  async function saveEdit() {
+    if (!editing || !valid(editing.draft)) return;
+    const d = editing.draft;
+    try {
+      await updateTask(editing.id, { title: d.title.trim(), due_date: d.date, due_time: d.time, priority: d.priority });
+      setEditing(null);
+      refresh();
+      toast.success("Task updated");
+    } catch (err) {
+      toast.error(errMsg(err));
+    }
+  }
+
+  async function act(fn: () => Promise<void>) {
+    try {
+      await fn();
       refresh();
     } catch (err) {
       toast.error(errMsg(err));
     }
   }
 
-  async function toggle(t: Task) {
-    await supabase.from("tasks").update({ done: !t.done }).eq("id", t.id);
-    refresh();
-  }
-  async function del(t: Task) {
-    await supabase.from("tasks").delete().eq("id", t.id);
-    refresh();
-  }
-
   async function go() {
     setLoading(true);
     try {
-      const payload = open.map((t) => ({ title: t.title, due_date: t.due_date, priority: t.priority }));
-      const out = await run({ data: { mode, today: todayISO(), tasks: payload } });
-      const row = await create.mutateAsync({
-        title: `${mode === "daily" ? "Daily" : "Weekly"} schedule · ${todayISO()}`,
-        input: { mode, tasks: payload },
-        output: { text: out.text },
-      });
-      setActiveId(row.id);
-      setText(out.text);
-    } catch (e) {
-      toast.error(errMsg(e));
+      const now = new Date();
+      const payload = open.map((t) => ({ title: t.title, priority: t.priority, due_date: t.due_date, due_time: t.due_time }));
+      const schedule = formatSchedule(buildBlocks(payload, now), mode, now);
+      let full = schedule;
+      try {
+        const out = await run({ data: { mode, now: now.toLocaleString(), schedule } });
+        full = `${schedule}\n\nWHY THIS ORDER\n${out.text}`;
+      } catch (e) {
+        toast.error(errMsg(e));
+      }
+      setActiveId(undefined);
+      setText(full);
     } finally {
       setLoading(false);
     }
   }
 
+  async function saveSchedule(v: string) {
+    try {
+      if (activeId) {
+        await update.mutateAsync({ id: activeId, output: { text: v } });
+      } else {
+        const row = await create.mutateAsync({
+          title: `${mode === "daily" ? "Daily" : "Weekly"} schedule · ${todayISO()}`,
+          input: { mode },
+          output: { text: v },
+        });
+        setActiveId(row.id);
+      }
+      setText(v);
+      toast.success("Schedule saved");
+    } catch (e) {
+      toast.error(errMsg(e));
+    }
+  }
+
   return (
     <>
-      <PageHeader title="Task Planner" subtitle="Add tasks, then let AI build your schedule." />
+      <PageHeader title="Task Planner" subtitle="Add tasks with deadlines, then build a schedule that finishes on time." />
       <div className="grid gap-6 lg:grid-cols-[1fr_280px]">
         <div className="space-y-4">
           <Card className="p-5">
-            <form onSubmit={add} className="grid gap-2 sm:grid-cols-[1fr_160px_130px_auto]">
-              <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="New task…" required />
-              <Input type="date" value={due} onChange={(e) => setDue(e.target.value)} aria-label="Due date" />
-              <Select value={priority} onValueChange={setPriority}>
-                <SelectTrigger aria-label="Priority"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="high">High</SelectItem>
-                  <SelectItem value="medium">Medium</SelectItem>
-                  <SelectItem value="low">Low</SelectItem>
-                </SelectContent>
-              </Select>
-              <Button type="submit" disabled={!title.trim()}><Plus className="h-4 w-4" /> Add</Button>
+            <form onSubmit={add} className="grid gap-3 md:grid-cols-[1fr_auto_140px_auto] md:items-end">
+              <div className="space-y-1.5">
+                <Label htmlFor="new-title">Task</Label>
+                <Input id="new-title" value={draft.title} onChange={(e) => setDraft({ ...draft, title: e.target.value })} placeholder="New task…" required />
+              </div>
+              <DueFields id="new" draft={draft} set={setDraft} />
+              <div className="space-y-1.5">
+                <Label>Priority</Label>
+                <PrioritySelect value={draft.priority} onChange={(p) => setDraft({ ...draft, priority: p })} />
+              </div>
+              <Button type="submit" disabled={saving || !valid(draft)}>
+                <Plus className="h-4 w-4" /> {saving ? "Saving…" : "Add"}
+              </Button>
             </form>
             <ul className="mt-4 divide-y">
               {sorted.length === 0 && <li className="py-3 text-sm text-muted-foreground">No tasks yet.</li>}
               {sorted.map((t) => (
                 <li key={t.id} className="flex flex-wrap items-center gap-2 py-3">
-                  <Checkbox checked={t.done} onCheckedChange={() => toggle(t)} aria-label="Done" />
+                  <Checkbox checked={t.done} onCheckedChange={() => act(() => updateTask(t.id, { done: !t.done }))} aria-label="Done" />
                   <span className={`min-w-0 flex-1 ${t.done ? "text-muted-foreground line-through" : ""}`}>{t.title}</span>
-                  <Badge variant={prioVariant(t.priority)} className="capitalize">{t.priority}</Badge>
-                  {t.due_date && <span className="text-xs text-muted-foreground">Due {t.due_date}</span>}
+                  <Badge className={`capitalize ${priorityClass(t.priority)}`}>{t.priority}</Badge>
+                  {t.due_date && <span className="text-xs text-muted-foreground">{dueLabel(t)}</span>}
                   <Button
                     size="sm"
                     variant="outline"
                     onClick={() =>
                       navigate({
                         to: "/email",
-                        search: { purpose: `Follow-up email about the task "${t.title}"${t.due_date ? ` (due ${t.due_date})` : ""}.` },
+                        search: { purpose: `Follow-up email about the task "${t.title}"${t.due_date ? ` (${dueLabel(t).toLowerCase()})` : ""}.` },
                       })
                     }
                   >
                     <Mail className="h-4 w-4" /> Draft follow-up email
                   </Button>
-                  <Button size="icon" variant="ghost" aria-label="Delete" onClick={() => del(t)}>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    aria-label="Edit"
+                    onClick={() =>
+                      setEditing({ id: t.id, draft: { title: t.title, date: t.due_date ?? "", time: t.due_time?.slice(0, 5) ?? "", priority: t.priority } })
+                    }
+                  >
+                    <Pencil className="h-4 w-4" />
+                  </Button>
+                  <Button size="icon" variant="ghost" aria-label="Delete" onClick={() => act(() => deleteTask(t.id))}>
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </li>
@@ -144,8 +203,9 @@ function Planner() {
               <ToggleGroupItem value="daily" className="px-4">Daily</ToggleGroupItem>
               <ToggleGroupItem value="weekly" className="px-4">Weekly</ToggleGroupItem>
             </ToggleGroup>
-            <Button onClick={go} disabled={loading || open.length === 0}>
-              <Sparkles className="h-4 w-4" /> {loading ? "Planning…" : "Generate schedule"}
+            <span className="text-xs text-muted-foreground">{mode === "daily" ? "Today, hour by hour" : "Grouped by day"}</span>
+            <Button onClick={go} disabled={loading || open.length === 0} className="ml-auto">
+              <CalendarClock className="h-4 w-4" /> {loading ? "Planning…" : "Generate schedule"}
             </Button>
           </Card>
           {loading ? (
@@ -155,12 +215,10 @@ function Planner() {
               <AiTextOutput
                 title="Your schedule"
                 value={text}
-                saving={update.isPending}
-                onSave={async (v) => {
-                  await update.mutateAsync({ id: activeId!, output: { text: v } });
-                  setText(v);
-                  toast.success("Edits saved");
-                }}
+                saving={create.isPending || update.isPending}
+                saveLabel="Save schedule"
+                alwaysSavable={!activeId}
+                onSave={saveSchedule}
               />
             )
           )}
@@ -174,6 +232,30 @@ function Planner() {
           }}
         />
       </div>
+      <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit task</DialogTitle>
+          </DialogHeader>
+          {editing && (
+            <div className="space-y-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="edit-title">Task</Label>
+                <Input id="edit-title" value={editing.draft.title} onChange={(e) => setEditing({ ...editing, draft: { ...editing.draft, title: e.target.value } })} />
+              </div>
+              <DueFields id="edit" draft={editing.draft} set={(d) => setEditing({ ...editing, draft: d })} />
+              <div className="space-y-1.5">
+                <Label>Priority</Label>
+                <PrioritySelect value={editing.draft.priority} onChange={(p) => setEditing({ ...editing, draft: { ...editing.draft, priority: p } })} />
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditing(null)}>Cancel</Button>
+            <Button onClick={saveEdit} disabled={!editing || !valid(editing.draft)}>Save changes</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
