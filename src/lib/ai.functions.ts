@@ -38,21 +38,14 @@ export const summarizeMeeting = createServerFn({ method: "POST" })
 export const planSchedule = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) =>
-    z
-      .object({
-        mode: z.enum(["daily", "weekly"]),
-        today: z.string(),
-        tasks: z.array(z.object({ title: z.string(), due_date: z.string().nullable(), priority: z.string() })).min(1).max(200),
-      })
-      .parse(d),
+    z.object({ mode: z.enum(["daily", "weekly"]), now: z.string().max(100), schedule: z.string().min(1).max(20000) }).parse(d),
   )
   .handler(async ({ data }) => {
     const { generate } = await import("./ai.server");
-    const list = data.tasks.map((t) => `- ${t.title} | priority: ${t.priority} | due: ${t.due_date ?? "none"}`).join("\n");
     return {
       text: await generate(
-        `${BASE} Create a prioritized ${data.mode} schedule from the user's tasks. Today is ${data.today}. Order by urgency and priority, group by ${data.mode === "daily" ? "time blocks for today" : "day of the week"}, and add a short rationale.`,
-        list,
+        `${BASE} The user's ${data.mode} schedule below is fixed and already respects every deadline with a 30-minute buffer. The current time is ${data.now}. Do NOT change or repeat any times. Write 2-4 short '-' bullets explaining the order and any tasks marked at risk.`,
+        data.schedule,
         getRequest().signal,
       ),
     };

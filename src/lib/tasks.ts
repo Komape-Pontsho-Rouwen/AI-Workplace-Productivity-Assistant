@@ -5,6 +5,7 @@ export type Task = {
   id: string;
   title: string;
   due_date: string | null;
+  due_time: string | null;
   priority: string;
   done: boolean;
   created_at: string;
@@ -36,7 +37,19 @@ export function dueSoon(tasks: Task[], today: string, days = 2) {
   return tasks.filter((t) => !t.done && t.due_date && t.due_date <= limitISO);
 }
 
-export async function addTask(title: string, due_date: string | null, priority: string) {
-  const { error } = await supabase.from("tasks").insert({ title, due_date, priority });
+export type TaskFields = { title: string; due_date: string; due_time: string; priority: string };
+
+export async function addTask(f: TaskFields) {
+  const { error } = await supabase.from("tasks").insert(f);
+  if (error) throw error;
+}
+
+export async function updateTask(id: string, f: Partial<TaskFields & { done: boolean }>) {
+  const { error } = await supabase.from("tasks").update(f).eq("id", id);
+  if (error) throw error;
+}
+
+export async function deleteTask(id: string) {
+  const { error } = await supabase.from("tasks").delete().eq("id", id);
   if (error) throw error;
 }
